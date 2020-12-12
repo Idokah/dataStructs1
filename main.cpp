@@ -8,6 +8,7 @@ enum class Side
 	LEFT
 };
 
+
 void validateInput(const char* x, const char* y, const int n);
 bool isInputValid(const char* num, int n);
 int* stringToIntArray(const char* string, int n);
@@ -20,6 +21,7 @@ int* func1(int* x, int* y, const int n);
 int* func2(int* x, int* y, const int n, int& newSize);
 int* func2rec(int* x, int* y, int size, int& newSize);
 void printArr(int* res, int size, const char* msg);
+int* copyArr(int* arr, int size);
 
 int main()
 {
@@ -37,13 +39,13 @@ int main()
 	validateInput(strX, strY, n);
 	int* x = stringToIntArray(strX, n);
 	int* y = stringToIntArray(strY, n);
-
-
+	
 	int* resultArr1 = func1(x, y, n);
-	printArr(resultArr1, 2 * n, "Long multiplication: x * y = ");
+	printArr(resultArr1, 2 * n, "Long multiplication: x * y =   ");
 	int newSize;
 	int* resultArr2 = func2(x, y, n, newSize);
 	printArr(resultArr2, newSize, "Karatsuba (recursive): x * y = ");
+	
 	delete[] x;
 	delete[] y;
 	delete[] resultArr1;
@@ -90,40 +92,51 @@ int* func1(int* x, int* y, const int n)
 
 int* func2(int* x, int* y, const int n, int& newSize) {
 	newSize = 2 * n;
-	//if (n % 2 != 0) {
-	//	x = addZerosToArr(x, n, 1, size, Side::LEFT);
-	//	y = addZerosToArr(y, n, 1, size, Side::LEFT);
-	//	newSize += 2 ;
-	//}
+
 	return func2rec(x, y, n, newSize);
+}
+
+int* copyArr(int* arr, int size) 
+{
+	int* newArr = new int[size];
+	for (int i = 0; i < size; i++)
+	{
+		newArr[i] = arr[i];
+	}
+	return newArr;
 }
 
 int* func2rec(int* x, int* y, int size, int& newSize)
 {
-	int* currX = x, * currY = y;
+	int* currX = copyArr(x, size), * currY = copyArr(y, size);
 	if (size <= 4) {
 		newSize = size * 2;
-		return func1(x, y, size);
+		return func1(currX, currY, size);
 	}
 	if (size % 2 != 0)
 	{
-		addZerosToArr(x, size, 1, Side::LEFT);
-		size = addZerosToArr(y, size, 1, Side::LEFT);
+		addZerosToArr(currX, size, 1, Side::LEFT);
+		size = addZerosToArr(currY, size, 1, Side::LEFT);
 	}
 
 	int mid = size - size / 2;
 	int acSize, bdSize, acMergeSize, aPlusBcPlusDSize, aPlusBSize, cPlusDSize, acPlusBdSize, aPlusBcPlusDMinusAcMinusBdSize;
-	int* ac = func2rec(x, y, mid, acSize);
-	int* bd = func2rec(x + mid, y + mid, size - mid, bdSize);
-	int* aPlusB = sumOfArrs(x, mid, x + mid, size - mid, aPlusBSize);
-	int* cPlusD = sumOfArrs(y, mid, y + mid, size - mid, cPlusDSize);
+	int* ac = func2rec(currX, currY, mid, acSize);
+	int* bd = func2rec(currX + mid, currY + mid, size - mid, bdSize);
+	int* aPlusB = sumOfArrs(currX, mid, currX + mid, size - mid, aPlusBSize);
+	int* cPlusD = sumOfArrs(currY, mid, currY + mid, size - mid, cPlusDSize);
 	int* aPlusBcPlusD = func2rec(aPlusB, cPlusD, aPlusBSize, aPlusBcPlusDSize);
 	int* acPlusBd = sumOfArrs(ac, acSize, bd, bdSize, acPlusBdSize);
 	int* aPlusBcPlusDMinusAcMinusBd = diffOfArrs(aPlusBcPlusD, aPlusBcPlusDSize, acPlusBd, acPlusBdSize, aPlusBcPlusDMinusAcMinusBdSize);
-	int* acMergeBd = merge(ac, bd, size, acMergeSize);
-	addZerosToArr(aPlusBcPlusDMinusAcMinusBd, aPlusBcPlusDMinusAcMinusBdSize, size - mid);
-	return sumOfArrs(aPlusBcPlusDMinusAcMinusBd, (aPlusBcPlusDMinusAcMinusBdSize + size - mid), acMergeBd, acMergeSize, newSize, true);
-}
+	acSize=addZerosToArr(ac, acSize, size,Side::RIGHT);
+	int* acMergeBd = sumOfArrs(ac, acSize, bd, bdSize, acMergeSize);
+	aPlusBcPlusDMinusAcMinusBdSize=addZerosToArr(aPlusBcPlusDMinusAcMinusBd, aPlusBcPlusDMinusAcMinusBdSize, size - mid);
+	int* res = sumOfArrs(aPlusBcPlusDMinusAcMinusBd, aPlusBcPlusDMinusAcMinusBdSize, acMergeBd, acMergeSize, newSize, true);
+	delete[] currX;
+	delete[] currY;
+	return res;
+}	
+
 
 int addZerosToArr(int*& arr, const int size, const int numOfZeros, Side side)
 {
@@ -261,7 +274,7 @@ int* stringToIntArray(const char* string, int n)
 	{
 		intArr[i] = static_cast<int>(string[i] - '0');
 	}
-	delete[] string;
+	delete[] string; 
 	return intArr;
 }
 
