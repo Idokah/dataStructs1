@@ -1,5 +1,9 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string.h>
+#include "BigNumber.h"
+#include "Item.h"
+#include "Stack.h"
+
 using namespace std;
 
 enum class Side
@@ -8,87 +12,19 @@ enum class Side
     LEFT
 };
 
-class bigNumber
-{
-public:
-    int* arr;
-    int size;
-    bigNumber();
-    bigNumber(int size, int* arr);
-    bigNumber(int size);
-    bigNumber(const bigNumber& other);
-    ~bigNumber();
-    int& operator[](int index);
-    bigNumber& operator=(const bigNumber& other);
-    friend ostream& operator<<(ostream&, const bigNumber& num);
-};
-
-bigNumber::bigNumber() : size(0), arr(nullptr) {}
-
-bigNumber::bigNumber(int size, int* arr) : size(size)
-{
-    this->arr = new int[size];
-    for (int i = 0; i < this->size; i++)
-    {
-        this->arr[i] = arr[i];
-    }
-}
-
-bigNumber::bigNumber(const bigNumber& other) { *this = other; }
-
-bigNumber& bigNumber::operator=(const bigNumber& other)
-{
-    this->size = other.size;
-    this->arr = new int[this->size];
-    for (int i = 0; i < this->size; i++)
-    {
-        this->arr[i] = other.arr[i];
-    }
-    return *this;
-}
-
-ostream& operator<<(ostream& os, const bigNumber& num) {
-    bool flag = false;
-    // os << "value - ";
-    for (int i = 0; i < num.size; ++i) {
-        if (num.arr[i] != 0 || flag) {
-            flag = true;
-            os << num.arr[i];
-        }
-    }
-    // os << " , address - " << &num << " , size - " << num.size;
-    os << endl;
-    return os;
-}
-
-bigNumber::bigNumber(int size) : size(size)
-{
-    this->arr = new int[size];
-}
-
-bigNumber::~bigNumber()
-{
-    delete[] this->arr;
-}
-
-int& bigNumber::operator[](int index)
-{
-    return this->arr[index];
-}
-
-
 void validateInput(const char* x, const char* y, const int n);
 bool isInputValid(const char* num, int n);
 int* stringToIntArray(const char* string, int n);
 int* initArray(int size);
 int* func1(int* x, int* y, const int n);
+bigNumber func1(bigNumber x, bigNumber y);
 void func2(bigNumber x, bigNumber y, bigNumber& outArr);
 bigNumber func2rec(bigNumber x, bigNumber y);
 void printArr(int* res, int size, const char* msg);
 bigNumber sumOfArrs(bigNumber num1, bigNumber num2);
 bigNumber addZerosToArr(bigNumber* num, const int numOfZeros, Side side = Side::RIGHT);
 bigNumber diffOfArrs(bigNumber num1, bigNumber num2);
-
+bigNumber func3(bigNumber x, bigNumber y);
 
 int main()
 {
@@ -109,15 +45,22 @@ int main()
     bigNumber x = bigNumber(n, xArr);
     bigNumber y = bigNumber(n, yArr);
 
-    int* resultArr1 = func1(xArr, yArr, n);
-    printArr(resultArr1, 2 * n, "Long multiplication: x * y =   ");
-    bigNumber resultArr2;
+    //int* resultArr1 = func1(xArr, yArr, n);
+    //printArr(resultArr1, 2 * n, "Long multiplication: x * y =   ");
 
+    bigNumber resultArr1 = func1(x, y);
+    cout << "Long multiplication: x * y =   " << resultArr1;
+    
+    bigNumber resultArr2;
     func2(x, y, resultArr2);
     cout << "Karatsuba (recursive): x * y = " << resultArr2;
+
+    bigNumber resultArr3 = func3(x, y);
+    cout << "Karatsuba (iterative): x * y = " << resultArr3;
+
     delete[] xArr;
     delete[] yArr;
-    delete[] resultArr1;
+    //delete[] resultArr1;
 }
 
 void printArr(int* res, int size, const char* msg)
@@ -134,25 +77,50 @@ void printArr(int* res, int size, const char* msg)
     cout << endl;
 }
 
-int* func1(int* x, int* y, const int n)
+//int* func1(int* x, int* y, const int n)
+//{
+//    int carry = 0, startingPoint = (2 * n) - 1, result, resIndex, tmp;
+//    int* resultArr = initArray(2 * n);
+//    for (int i = n - 1; i >= 0; --i)
+//    {
+//        carry = 0;
+//        for (int j = n - 1; j >= 0; --j)
+//        {
+//            result = (x[j] * y[i]) + carry;
+//            carry = result / 10;
+//            resIndex = startingPoint - (n - 1 - (j));
+//            resultArr[resIndex] = (resultArr[resIndex] + result % 10);
+//            carry += resultArr[resIndex] / 10;
+//            resultArr[resIndex] %= 10;
+//        }
+//        tmp = (resultArr[startingPoint - n] + carry);
+//        resultArr[startingPoint - n] += tmp % 10;
+//        resultArr[startingPoint - (n + 1)] += tmp / 10;
+//        startingPoint--;
+//    }
+//    return resultArr;
+//}
+
+bigNumber func1(bigNumber x, bigNumber y)
 {
+    int n = x.size;
     int carry = 0, startingPoint = (2 * n) - 1, result, resIndex, tmp;
-    int* resultArr = initArray(2 * n);
+    bigNumber resultArr(2 * n);
     for (int i = n - 1; i >= 0; --i)
     {
         carry = 0;
         for (int j = n - 1; j >= 0; --j)
         {
-            result = (x[j] * y[i]) + carry;
+            result = (x.arr[j] * y.arr[i]) + carry;
             carry = result / 10;
             resIndex = startingPoint - (n - 1 - (j));
-            resultArr[resIndex] = (resultArr[resIndex] + result % 10);
-            carry += resultArr[resIndex] / 10;
-            resultArr[resIndex] %= 10;
+            resultArr.arr[resIndex] = (resultArr.arr[resIndex] + result % 10);
+            carry += resultArr.arr[resIndex] / 10;
+            resultArr.arr[resIndex] %= 10;
         }
-        tmp = (resultArr[startingPoint - n] + carry);
-        resultArr[startingPoint - n] += tmp % 10;
-        resultArr[startingPoint - (n + 1)] += tmp / 10;
+        tmp = (resultArr.arr[startingPoint - n] + carry);
+        resultArr.arr[startingPoint - n] += tmp % 10;
+        resultArr.arr[startingPoint - (n + 1)] += tmp / 10;
         startingPoint--;
     }
     return resultArr;
@@ -235,7 +203,109 @@ bigNumber func2rec(bigNumber x, bigNumber y)
 
 }
 
+bigNumber func3(bigNumber x, bigNumber y)
+{
+    Stack S;
+    int returnFromRecursion = 0;
+    Item curr;
+    bigNumber returnValue; ; // value returned by function.
+    curr.x = x;
+    curr.y = y;
+    curr.size = x.size;
+    curr.line = Line::START;   
 
+    do {
+            if (returnFromRecursion)
+                curr = S.pop();
+            if (curr.line == Line::START) {
+                if (curr.x.size <= 1) {
+                    bigNumber res(2);
+                    res[0] = x[0] * y[0] / 10;
+                    res[1] = x[0] * y[0] % 10;
+                    returnValue = res;
+                    returnFromRecursion = 1;
+                }
+                else {
+                    curr.line = Line::AFTER_FIRST;
+                    // what we are doing before the first recursive call
+                    bigNumber a(curr.x.size / 2, x.arr);
+                    bigNumber b(curr.x.size / 2 + curr.x.size % 2, x.arr + curr.x.size / 2);
+                    bigNumber c(curr.x.size / 2, y.arr);
+                    bigNumber d(curr.x.size / 2 + curr.x.size % 2, y.arr + curr.x.size / 2);
+
+                    if (curr.x.size % 2 != 0)
+                    {
+                        a = addZerosToArr(&a, 1, Side::LEFT);
+                        c = addZerosToArr(&c, 1, Side::LEFT);
+                        curr.size++;
+                    }
+                    curr.a = a;
+                    curr.b = b;
+                    curr.c = c;
+                    curr.d = d;
+                    S.push(curr);
+
+                    curr.x = a;
+                    curr.y = c;
+                    curr.line = Line::START;
+                    returnFromRecursion = 0;
+                }
+            }
+            else if (curr.line == Line::AFTER_FIRST) {
+                curr.line = Line::AFTER_SECOND;
+                curr.ac = returnValue;
+                S.push(curr);
+                curr.x = curr.b;
+                curr.y = curr.d;
+                curr.line = Line::START;
+                returnFromRecursion = 0;
+            }
+            else if (curr.line == Line::AFTER_SECOND) {
+                curr.line = Line::AFTER_SECOND;
+                curr.bd = returnValue;
+                S.push(curr);
+
+                bigNumber aPlusB = sumOfArrs(curr.a, curr.b);
+                bigNumber cPlusD = sumOfArrs(curr.c, curr.d);
+
+                if (aPlusB.size != cPlusD.size)
+                {
+                    if (aPlusB.size > cPlusD.size)
+                        cPlusD = addZerosToArr(&cPlusD, aPlusB.size - cPlusD.size, Side::LEFT);
+                    else
+                        aPlusB = addZerosToArr(&aPlusB, cPlusD.size - aPlusB.size, Side::LEFT);
+                }
+
+                curr.x = aPlusB;
+                curr.y = cPlusD;
+                curr.line = Line::START;
+                returnFromRecursion = 0;
+            }
+            else if (curr.line == Line::AFTER_THIRD) {
+                returnFromRecursion = 1;
+                curr.aPlusBcPlusD = returnValue;
+
+                //returns array with size of (size+1)
+                bigNumber acPlusBd = sumOfArrs(curr.ac, curr.bd);
+
+                //returns array with size of (2*size)
+                bigNumber acMergeBd = sumOfArrs(curr.ac, curr.bd);
+
+                //returns array with size of (size+2)
+                bigNumber aPlusBcPlusDMinusAcMinusBd = diffOfArrs(curr.aPlusBcPlusD, acPlusBd);
+
+                //increase aPlusBcPlusDMinusAcMinusBd to size of (1.5*size+2)
+                aPlusBcPlusDMinusAcMinusBd = addZerosToArr(&aPlusBcPlusDMinusAcMinusBd, curr.size / 2);
+                bigNumber res = sumOfArrs(aPlusBcPlusDMinusAcMinusBd, acMergeBd);
+
+                if (2 * curr.x.size > res.size)
+                    res = addZerosToArr(&res, curr.x.size * 2 - res.size, Side::LEFT);
+
+                returnValue = res;
+            }
+     } while (!S.isEmpty());
+    return returnValue;
+}
 
 bigNumber addZerosToArr(bigNumber* num, const int numOfZeros, Side side)
 {
