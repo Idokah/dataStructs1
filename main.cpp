@@ -30,7 +30,7 @@ bigNumber diffOfArrs(bigNumber num1, bigNumber num2);
 int main()
 {
 
-    int n;
+    int n = 4;
     cin >> n;
     char* strX = new char[n + 1];
     char* strY = new char[n + 1];
@@ -42,6 +42,18 @@ int main()
     validateInput(strX, strY, n);
     int* xArr = stringToIntArray(strX, n);
     int* yArr = stringToIntArray(strY, n);
+    //int* xArr = new int[n];
+    //xArr[0] = 1;
+    //xArr[1] = 2;
+    //xArr[2] = 3;
+    //xArr[3] = 4;
+    //xArr[3] = 4;
+
+    //int* yArr = new int[n];
+    //yArr[0] = 0;
+    //yArr[1] = 0;
+    //yArr[2] = 1;
+    //yArr[3] = 0;
 
     bigNumber x = bigNumber(n, xArr);
     bigNumber y = bigNumber(n, yArr);
@@ -53,8 +65,8 @@ int main()
     func2(x, y, resultArr2);
     cout << "Karatsuba (recursive): x * y = " << resultArr2;
 
-   // bigNumber resultArr3 = func3(x, y);
-    //cout << "Karatsuba (iterative): x * y = " << resultArr3;
+    bigNumber resultArr3 = func3(x, y);
+    cout << "Karatsuba (iterative): x * y = " << resultArr3;
 
     delete[] xArr;
     delete[] yArr;
@@ -193,18 +205,19 @@ bigNumber func3(bigNumber x, bigNumber y)
             if (curr.line == Line::START) {
                 if (curr.x.size <= 1) {
                     bigNumber res(2);
-                    res[0] = x[0] * y[0] / 10;
-                    res[1] = x[0] * y[0] % 10;
+                    res[0] = curr.x[0] * curr.y[0] / 10;
+                    res[1] = curr.x[0] * curr.y[0] % 10;
                     returnValue = res;
                     returnFromRecursion = 1;
                 }
                 else {
+                    curr.size = curr.x.size; //??
                     curr.line = Line::AFTER_FIRST;
                     // what we are doing before the first recursive call
-                    bigNumber a(curr.x.size / 2, x.arr);
-                    bigNumber b(curr.x.size / 2 + curr.x.size % 2, x.arr + curr.x.size / 2);
-                    bigNumber c(curr.x.size / 2, y.arr);
-                    bigNumber d(curr.x.size / 2 + curr.x.size % 2, y.arr + curr.x.size / 2);
+                    bigNumber a(curr.x.size / 2, curr.x.arr);
+                    bigNumber b(curr.x.size / 2 + curr.x.size % 2, curr.x.arr + curr.x.size / 2);
+                    bigNumber c(curr.x.size / 2, curr.y.arr);
+                    bigNumber d(curr.x.size / 2 + curr.x.size % 2, curr.y.arr + curr.x.size / 2);
 
                     if (curr.x.size % 2 != 0)
                     {
@@ -234,7 +247,7 @@ bigNumber func3(bigNumber x, bigNumber y)
                 returnFromRecursion = 0;
             }
             else if (curr.line == Line::AFTER_SECOND) {
-                curr.line = Line::AFTER_SECOND;
+                curr.line = Line::AFTER_THIRD;
                 curr.bd = returnValue;
                 S.push(curr);
 
@@ -260,6 +273,9 @@ bigNumber func3(bigNumber x, bigNumber y)
 
                 //returns array with size of (size+1)
                 bigNumber acPlusBd = sumOfArrs(curr.ac, curr.bd);
+
+                //increase ac to size of (2*size)
+                curr.ac = addZerosToArr(&curr.ac, curr.size, Side::RIGHT);
 
                 //returns array with size of (2*size)
                 bigNumber acMergeBd = sumOfArrs(curr.ac, curr.bd);

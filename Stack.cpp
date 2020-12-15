@@ -7,7 +7,12 @@ using namespace std;
 Node::Node(Item item, Node* next)
 {
 	this->item = item;
-	next->next = next;
+	this->next = next;
+}
+
+Stack::Stack()
+{
+	this->top = nullptr;
 }
 
 void Stack::push(Item item)
@@ -18,7 +23,7 @@ void Stack::push(Item item)
 
 bool Stack::isEmpty()
 {
-	return top == NULL;
+	return this->top == nullptr;
 }
 
 
@@ -26,16 +31,23 @@ Item Stack::pop()
 {
 	Node* temp;
 
-	if (top == NULL)
+	if (this->top == nullptr)
 	{
 		cout << "\nStack Underflow" << endl;
 		exit(1);
 	}
 	else
 	{
-		temp = top;
-		top = top->next;
-		temp->next = NULL;
+		temp = this->top;
+		this->top = this->top->next;
+		temp->next = nullptr;
 		return temp->item;
+	}
+}
+
+void Stack::makeEmpty()
+{
+	while (this->top != nullptr) {
+		pop();
 	}
 }

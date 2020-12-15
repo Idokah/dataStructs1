@@ -10,6 +10,7 @@ struct Node {
 
 class Stack {
 	public:
+		Stack();
 		bool isEmpty();
 		void makeEmpty();
 		void push(Item item);
