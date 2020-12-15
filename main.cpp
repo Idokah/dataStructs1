@@ -1,72 +1,26 @@
-﻿#include <iostream>
-#include <string.h>
-#include "BigNumber.h"
-#include "Item.h"
-#include "Stack.h"
-
-using namespace std;
-
-enum class Side
-{
-    RIGHT,
-    LEFT
-};
-
-
-bigNumber func1(bigNumber x, bigNumber y);
-void func2(bigNumber x, bigNumber y, bigNumber& outArr);
-bigNumber func2rec(bigNumber x, bigNumber y);
-bigNumber func3(bigNumber x, bigNumber y);
-
-void validateInput(const char* x, const char* y, const int n);
-bool isInputValid(const char* num, int n);
-int* stringToIntArray(const char* string, int n);
-int* initArray(int size);
-void printArr(int* res, int size, const char* msg);
-bigNumber sumOfArrs(bigNumber num1, bigNumber num2);
-bigNumber addZerosToArr(bigNumber* num, const int numOfZeros, Side side = Side::RIGHT);
-bigNumber diffOfArrs(bigNumber num1, bigNumber num2);
-
+﻿#include "main.h"
+#define MAX_N 10
 int main()
 {
-
-    int n = 4;
-    cin >> n;
+    string strN;
+    getline(cin, strN);
+    int n = convertNToInt(strN);
     char* strX = new char[n + 1];
     char* strY = new char[n + 1];
 
-    cin.ignore();
     cin.getline(strX, (n + 1));
     cin.getline(strY, (n + 1));
 
     validateInput(strX, strY, n);
     int* xArr = stringToIntArray(strX, n);
     int* yArr = stringToIntArray(strY, n);
-    //int* xArr = new int[n];
-    //xArr[0] = 1;
-    //xArr[1] = 2;
-    //xArr[2] = 3;
-    //xArr[3] = 4;
-    //xArr[3] = 4;
-
-    //int* yArr = new int[n];
-    //yArr[0] = 0;
-    //yArr[1] = 0;
-    //yArr[2] = 1;
-    //yArr[3] = 0;
 
     bigNumber x = bigNumber(n, xArr);
     bigNumber y = bigNumber(n, yArr);
 
-    bigNumber resultArr1 = func1(x, y);
-    cout << "Long multiplication: x * y =   " << resultArr1;
-    
-    bigNumber resultArr2;
-    func2(x, y, resultArr2);
-    cout << "Karatsuba (recursive): x * y = " << resultArr2;
-
-    bigNumber resultArr3 = func3(x, y);
-    cout << "Karatsuba (iterative): x * y = " << resultArr3;
+    schoolMulMeasure1(x, y);
+    kartsubaRecursiveMeasure2(x, y);
+    kartsubaStackMeasure3(x, y);
 
     delete[] xArr;
     delete[] yArr;
@@ -86,7 +40,7 @@ void printArr(int* res, int size, const char* msg)
     cout << endl;
 }
 
-bigNumber func1(bigNumber x, bigNumber y)
+bigNumber schoolMul(bigNumber x, bigNumber y)
 {
     int n = x.size;
     int carry = 0, startingPoint = (2 * n) - 1, result, resIndex, tmp;
@@ -112,11 +66,11 @@ bigNumber func1(bigNumber x, bigNumber y)
 }
 
 
-void func2(bigNumber x, bigNumber y, bigNumber& outArr) {
-    outArr = func2rec(x, y);
+void kartsubaRecursive(bigNumber x, bigNumber y, bigNumber& outArr) {
+    outArr = kartsubaRecursiveHelper(x, y);
 }
 
-bigNumber func2rec(bigNumber x, bigNumber y)
+bigNumber kartsubaRecursiveHelper(bigNumber x, bigNumber y)
 {
 
     int originSize = x.size;
@@ -146,8 +100,8 @@ bigNumber func2rec(bigNumber x, bigNumber y)
 
 
     // returns array with size of size
-    bigNumber ac = func2rec(a, c);
-    bigNumber bd = func2rec(b, d);
+    bigNumber ac = kartsubaRecursiveHelper(a, c);
+    bigNumber bd = kartsubaRecursiveHelper(b, d);
 
     //returns array with size of (size+1)
     bigNumber acPlusBd = sumOfArrs(ac, bd);
@@ -171,7 +125,7 @@ bigNumber func2rec(bigNumber x, bigNumber y)
             aPlusB = addZerosToArr(&aPlusB, cPlusD.size - aPlusB.size, Side::LEFT);
     }
 
-    bigNumber aPlusBcPlusD = func2rec(aPlusB, cPlusD);
+    bigNumber aPlusBcPlusD = kartsubaRecursiveHelper(aPlusB, cPlusD);
 
     //returns array with size of (size+2)
     bigNumber aPlusBcPlusDMinusAcMinusBd = diffOfArrs(aPlusBcPlusD, acPlusBd);
@@ -188,7 +142,7 @@ bigNumber func2rec(bigNumber x, bigNumber y)
 
 }
 
-bigNumber func3(bigNumber x, bigNumber y)
+bigNumber kartsubaStack(bigNumber x, bigNumber y)
 {
     Stack S;
     int returnFromRecursion = 0;
@@ -367,12 +321,8 @@ bigNumber sumOfArrs(bigNumber num1, bigNumber num2)
         carry = result / 10;
         arr2Index--; resIndex--;
     }
-    while (resIndex >= 0)
-    {
-        newNum[resIndex] = carry;
-        carry = 0;
-        resIndex--;
-    }
+    newNum[0] += carry;
+
     newNum = removeLeadingZero(&newNum);
     return newNum;
 }
@@ -412,6 +362,7 @@ bigNumber diffOfArrs(bigNumber num1, bigNumber num2) {
         carry = 0;
         arr2Index--; resIndex--;
     }
+
     while (resIndex >= 0)
     {
         diffNum[resIndex] = carry;
@@ -422,13 +373,37 @@ bigNumber diffOfArrs(bigNumber num1, bigNumber num2) {
     return diffNum;
 }
 
-void validateInput(const char* x, const char* y, const int n)
+int convertNToInt(string strN)
 {
+    int n;
+    strN.erase(0, strN.find_first_not_of(' '));
+    if (strN[0] == '0')
+    {
+        cout << "wrong output";
+        exit(1);
+    }
+    int len = strN.length();
+    for (int i = 0; i < len; ++i)
+    {
+        if (!(isdigit(strN[i])) && strN[i]!=' ')
+        {
+            cout << "wrong output";
+            exit(1);
+        }
+    }
+    n = stoi(strN);
+    return n;
+}
+
+void validateInput(const char* x, const char* y,int n)
+{
+
     if (!isInputValid(x, n) || !isInputValid(y, n))
     {
         cout << "wrong output";
         exit(1);
     }
+   
 }
 
 bool isInputValid(const char* num, int n)
@@ -451,14 +426,4 @@ int* stringToIntArray(const char* string, int n)
     }
     delete[] string;
     return intArr;
-}
-
-int* initArray(int size)
-{
-    int* arr = new int[size];
-    for (int i = 0; i < size; ++i)
-    {
-        arr[i] = 0;
-    }
-    return arr;
 }

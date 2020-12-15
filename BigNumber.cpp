@@ -26,14 +26,14 @@ bigNumber& bigNumber::operator=(const bigNumber& other)
 
 ostream& operator<<(ostream& os, const bigNumber& num) {
     bool flag = false;
-    // os << "value - ";
     for (int i = 0; i < num.size; ++i) {
         if (num.arr[i] != 0 || flag) {
             flag = true;
             os << num.arr[i];
         }
     }
-    // os << " , address - " << &num << " , size - " << num.size;
+    if (!flag)
+        os << "0";
     os << endl;
     return os;
 }
