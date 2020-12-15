@@ -12,19 +12,20 @@ enum class Side
     LEFT
 };
 
+
+bigNumber func1(bigNumber x, bigNumber y);
+void func2(bigNumber x, bigNumber y, bigNumber& outArr);
+bigNumber func2rec(bigNumber x, bigNumber y);
+bigNumber func3(bigNumber x, bigNumber y);
+
 void validateInput(const char* x, const char* y, const int n);
 bool isInputValid(const char* num, int n);
 int* stringToIntArray(const char* string, int n);
 int* initArray(int size);
-int* func1(int* x, int* y, const int n);
-bigNumber func1(bigNumber x, bigNumber y);
-void func2(bigNumber x, bigNumber y, bigNumber& outArr);
-bigNumber func2rec(bigNumber x, bigNumber y);
 void printArr(int* res, int size, const char* msg);
 bigNumber sumOfArrs(bigNumber num1, bigNumber num2);
 bigNumber addZerosToArr(bigNumber* num, const int numOfZeros, Side side = Side::RIGHT);
 bigNumber diffOfArrs(bigNumber num1, bigNumber num2);
-bigNumber func3(bigNumber x, bigNumber y);
 
 int main()
 {
@@ -45,9 +46,6 @@ int main()
     bigNumber x = bigNumber(n, xArr);
     bigNumber y = bigNumber(n, yArr);
 
-    //int* resultArr1 = func1(xArr, yArr, n);
-    //printArr(resultArr1, 2 * n, "Long multiplication: x * y =   ");
-
     bigNumber resultArr1 = func1(x, y);
     cout << "Long multiplication: x * y =   " << resultArr1;
     
@@ -55,12 +53,11 @@ int main()
     func2(x, y, resultArr2);
     cout << "Karatsuba (recursive): x * y = " << resultArr2;
 
-    bigNumber resultArr3 = func3(x, y);
-    cout << "Karatsuba (iterative): x * y = " << resultArr3;
+   // bigNumber resultArr3 = func3(x, y);
+    //cout << "Karatsuba (iterative): x * y = " << resultArr3;
 
     delete[] xArr;
     delete[] yArr;
-    //delete[] resultArr1;
 }
 
 void printArr(int* res, int size, const char* msg)
@@ -76,30 +73,6 @@ void printArr(int* res, int size, const char* msg)
     }
     cout << endl;
 }
-
-//int* func1(int* x, int* y, const int n)
-//{
-//    int carry = 0, startingPoint = (2 * n) - 1, result, resIndex, tmp;
-//    int* resultArr = initArray(2 * n);
-//    for (int i = n - 1; i >= 0; --i)
-//    {
-//        carry = 0;
-//        for (int j = n - 1; j >= 0; --j)
-//        {
-//            result = (x[j] * y[i]) + carry;
-//            carry = result / 10;
-//            resIndex = startingPoint - (n - 1 - (j));
-//            resultArr[resIndex] = (resultArr[resIndex] + result % 10);
-//            carry += resultArr[resIndex] / 10;
-//            resultArr[resIndex] %= 10;
-//        }
-//        tmp = (resultArr[startingPoint - n] + carry);
-//        resultArr[startingPoint - n] += tmp % 10;
-//        resultArr[startingPoint - (n + 1)] += tmp / 10;
-//        startingPoint--;
-//    }
-//    return resultArr;
-//}
 
 bigNumber func1(bigNumber x, bigNumber y)
 {
